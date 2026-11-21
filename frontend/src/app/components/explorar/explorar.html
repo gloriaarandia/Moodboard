@@ -1,0 +1,74 @@
+<div class="explorar-container">
+  <section class="cabecera">
+    <h1>Explora por atmósfera</h1>
+    <p>Descubre películas y libros a través de su paleta de colores y su banda sonora.</p>
+
+    <div class="filtros-bar">
+      @for (tag of tagsFiltro; track tag) {
+        <button 
+          class="btn-tag" 
+          [class.activo]="tagSeleccionado() === tag"
+          (click)="filtrarPorTag(tag)">
+          {{ tag }}
+        </button>
+      }
+    </div>
+  </section>
+
+  @if (cargando()) {
+    <p class="mensaje-estado">Cargando atmósferas...</p>
+  } @else if (moodboards().length === 0) {
+    <p class="mensaje-estado">No hay moodboards con esta atmósfera todavía.</p>
+  } @else {
+    <section class="grid-moodboards">
+      @for (mb of moodboards(); track mb.idMoodboard) {
+        <article class="card">
+          
+          <div class="card-media">
+            <img [src]="mb.coverUrl" [alt]="mb.mediaTitle" class="portada" />
+            <div class="degradado"></div>
+
+            <span class="badge-tipo">
+              {{ mb.mediaType === 'libro' ? '📖 Libro' : '🎬 Película' }}
+            </span>
+
+            <div class="controles-inferiores">
+              <div class="paleta-bolitas">
+                @for (color of obtenerColores(mb.paleta); track $index) {
+                  <span class="bolita" [style.background-color]="color" [title]="color"></span>
+                }
+              </div>
+
+              @if (mb.tracks && mb.tracks.length > 0) {
+                <button 
+                  class="btn-play" 
+                  (click)="togglePlay(mb.tracks[0].previewMp3Url)"
+                  [title]="'Escuchar: ' + mb.tracks[0].titulo">
+                  {{ urlSonando() === mb.tracks[0].previewMp3Url ? '⏸' : '▶' }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div>
+              <h2 class="card-titulo">
+                <a [routerLink]="['/moodboard', mb.idMoodboard]">{{ mb.titulo }}</a>
+              </h2>
+              <p class="card-obra">
+                {{ mb.mediaTitle }} @if (mb.mediaYear) { ({{ mb.mediaYear }}) }
+              </p>
+            </div>
+
+            <div class="card-tags">
+              @for (tag of mb.tags; track tag.idTag) {
+                <span class="tag-chip">#{{ tag.nombre }}</span>
+              }
+            </div>
+          </div>
+
+        </article>
+      }
+    </section>
+  }
+</div>

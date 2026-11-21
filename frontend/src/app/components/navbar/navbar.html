@@ -1,0 +1,26 @@
+<header class="navbar-header">
+  <nav class="navbar-container">
+    <!-- Logo -->
+    <a routerLink="/" class="logo">
+      <div class="logo-icon">SF</div>
+      <span class="logo-text">SoundFrame</span>
+    </a>
+
+    <!-- Botones principales -->
+    <div class="nav-actions">
+      <button class="btn-sorprendeme" (click)="abrirRuleta()">
+        <span>🎲</span>
+        <span class="texto-oculto-movil">Sorpréndeme</span>
+      </button>
+
+      <a routerLink="/crear" class="btn-crear">
+        <span class="plus">+</span>
+        <span>Crear Moodboard</span>
+      </a>
+
+      <a routerLink="/perfil" class="btn-perfil" title="Mi Perfil">
+        👤
+      </a>
+    </div>
+  </nav>
+</header>
