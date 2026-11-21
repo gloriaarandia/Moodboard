@@ -24,7 +24,7 @@
       @for (mb of moodboards(); track mb.idMoodboard) {
         <article class="card">
           
-          <div class="card-media">
+          <a [routerLink]="['/moodboard', mb.idMoodboard]" class="card-media">
             <img [src]="mb.coverUrl" [alt]="mb.mediaTitle" class="portada" />
             <div class="degradado"></div>
 
@@ -41,20 +41,19 @@
 
               @if (mb.tracks && mb.tracks.length > 0) {
                 <button 
+                  type="button"
                   class="btn-play" 
-                  (click)="togglePlay(mb.tracks[0].previewMp3Url)"
+                  (click)="$event.preventDefault(); $event.stopPropagation(); togglePlay(mb.tracks[0].previewMp3Url)"
                   [title]="'Escuchar: ' + mb.tracks[0].titulo">
                   {{ urlSonando() === mb.tracks[0].previewMp3Url ? '⏸' : '▶' }}
                 </button>
               }
             </div>
-          </div>
+          </a>
 
-          <div class="card-body">
+          <a [routerLink]="['/moodboard', mb.idMoodboard]" class="card-body">
             <div>
-              <h2 class="card-titulo">
-                <a [routerLink]="['/moodboard', mb.idMoodboard]">{{ mb.titulo }}</a>
-              </h2>
+              <h2 class="card-titulo">{{ mb.titulo }}</h2>
               <p class="card-obra">
                 {{ mb.mediaTitle }} @if (mb.mediaYear) { ({{ mb.mediaYear }}) }
               </p>
@@ -65,7 +64,7 @@
                 <span class="tag-chip">#{{ tag.nombre }}</span>
               }
             </div>
-          </div>
+          </a>
 
         </article>
       }

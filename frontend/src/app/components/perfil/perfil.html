@@ -1,0 +1,186 @@
+<div class="perfil-wrapper">
+  <section class="pasaporte-box">
+    <div class="pasaporte-cabecera">
+      <div class="avatar-perfil">SF</div>
+      <div>
+        <span class="etiqueta-pasaporte">Pasaporte Estético</span>
+        <h1>Tu ADN de atmósferas</h1>
+        <p>{{ creados().length }} creados • {{ guardados().length }} guardados</p>
+      </div>
+    </div>
+
+    @if (topMoods().length > 0) {
+      <div class="barra-porcentajes">
+        @for (mood of topMoods(); track mood.nombre) {
+          <div
+            class="barra-tramo"
+            [style.width.%]="mood.porcentaje"
+            [style.background-color]="mood.color"
+            [title]="mood.nombre + ': ' + mood.porcentaje + '%'">
+          </div>
+        }
+      </div>
+
+      <div class="lista-porcentajes">
+        @for (mood of topMoods(); track mood.nombre) {
+          <span class="chip-porcentaje">
+            <i [style.background-color]="mood.color"></i>
+            <strong>{{ mood.porcentaje }}%</strong> {{ mood.nombre }}
+          </span>
+        }
+      </div>
+    } @else {
+      <p class="texto-vacio">Crea o guarda moodboards para ver tus 3 moods principales.</p>
+    }
+  </section>
+
+  @if (editandoMoodboard(); as mbEdit) {
+    <section class="editor-panel">
+      <div class="editor-top">
+        <h2>Editando: {{ mbEdit.titulo }}</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarEdicion()">✕</button>
+      </div>
+
+      <div class="campo">
+        <label>Título *</label>
+        <input type="text" [(ngModel)]="editTitulo" class="input-dark" />
+      </div>
+
+      <div class="campo">
+        <label>Descripción</label>
+        <textarea [(ngModel)]="editDescripcion" rows="2" class="input-dark"></textarea>
+      </div>
+
+      <div class="campo">
+        <label>Paleta de colores</label>
+        <div class="colores-fila">
+          @for (color of editPaleta(); track $index) {
+            <div class="color-item">
+              <input type="color" [value]="color" (change)="actualizarColor($index, $event)" />
+              <span>{{ color }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Etiquetas (máx. 3) — {{ editTagIds().length }}/3</label>
+        <div class="tags-fila">
+          @for (tag of availableTags; track tag.idTag) {
+            <button
+              type="button"
+              class="tag-btn"
+              [class.activa]="editTagIds().includes(tag.idTag)"
+              (click)="toggleTagEdicion(tag.idTag)">
+              {{ tag.nombre }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Canciones ({{ editTracks().length }}/5)</label>
+        <div class="buscador-box">
+          <input
+            type="text"
+            [(ngModel)]="deezerQuery"
+            (input)="onDeezerSearch()"
+            placeholder="Añadir canción desde Deezer..."
+            class="input-dark"
+          />
+          @if (deezerResults().length > 0) {
+            <div class="dropdown-deezer">
+              @for (t of deezerResults(); track t.id) {
+                <div class="item-deezer">
+                  <span><strong>{{ t.title }}</strong> — {{ t.artist?.name }}</span>
+                  <button type="button" class="btn-add-mini" (click)="addTrackEdicion(t)">+ Añadir</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="lista-tracks-edit">
+          @for (track of editTracks(); track track.deezerTrackId || $index; let i = $index) {
+            <div class="track-edit-row">
+              <span>{{ i + 1 }}. <strong>{{ track.titulo }}</strong> — {{ track.artista }}</span>
+              <button type="button" class="btn-quitar" (click)="removeTrackEdicion(i)">✕</button>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (mensajeFeedback()) {
+        <p class="error-msg">{{ mensajeFeedback() }}</p>
+      }
+
+      <div class="acciones-editor">
+        <button type="button" class="btn-secundario" (click)="cerrarEdicion()">Cancelar</button>
+        <button type="button" class="btn-guardar-cambios" [disabled]="guardandoEdicion()" (click)="guardarCambios()">
+          {{ guardandoEdicion() ? 'Guardando...' : '💾 Guardar cambios' }}
+        </button>
+      </div>
+    </section>
+  }
+
+  <section class="galeria-perfil">
+    <div class="pestanas-perfil">
+      <button
+        type="button"
+        class="pestana-btn"
+        [class.activa]="pestanaActiva() === 'creados'"
+        (click)="cambiarPestana('creados')">
+        Creados ({{ creados().length }})
+      </button>
+      <button
+        type="button"
+        class="pestana-btn"
+        [class.activa]="pestanaActiva() === 'guardados'"
+        (click)="cambiarPestana('guardados')">
+        Guardados ({{ guardados().length }})
+      </button>
+    </div>
+
+    @if (cargando()) {
+      <p class="texto-vacio">Cargando moodboards...</p>
+    } @else if (galeriaActiva().length === 0) {
+      <p class="texto-vacio">No hay moodboards en esta sección todavía.</p>
+    } @else {
+      <div class="grid-galeria">
+        @for (mb of galeriaActiva(); track mb.idMoodboard) {
+          <article class="tarjeta-perfil">
+            <a [routerLink]="['/moodboard', mb.idMoodboard]" class="enlace-portada">
+              <img [src]="mb.coverUrl" [alt]="mb.mediaTitle" />
+            </a>
+            <div class="tarjeta-perfil-info">
+              <h3>
+                <a [routerLink]="['/moodboard', mb.idMoodboard]">{{ mb.titulo }}</a>
+              </h3>
+              <span>{{ mb.mediaTitle }}</span>
+              <div class="bolitas-perfil">
+                @for (color of obtenerColores(mb.paleta); track $index) {
+                  <span [style.background-color]="color"></span>
+                }
+              </div>
+
+              @if (pestanaActiva() === 'creados') {
+                <div class="acciones-tarjeta-perfil">
+                  <button type="button" class="btn-editar-mb" (click)="abrirEdicion(mb, $event)">
+                    ✏️ Editar
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-eliminar-mb"
+                    [disabled]="eliminandoId() === mb.idMoodboard"
+                    (click)="eliminarMoodboard(mb, $event)">
+                    {{ eliminandoId() === mb.idMoodboard ? '...' : '🗑 Eliminar' }}
+                  </button>
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</div>

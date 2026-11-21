@@ -110,3 +110,91 @@
     display: none;
   }
 }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 20px;
+  padding: 1.5rem;
+  color: #f8fafc;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.modal-card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.3rem;
+}
+
+.modal-card p {
+  margin: 0 0 1.1rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.moods-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.mood-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #1e293b;
+  background: #020617;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.mood-btn:hover {
+  border-color: #6366f1;
+}
+
+.mood-cualquiera-btn {
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, #c026d3, #4f46e5);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal-error {
+  margin-top: 0.65rem;
+  font-size: 0.8rem;
+  color: #fca5a5;
+}

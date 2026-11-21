@@ -1,0 +1,166 @@
+<div class="detalle-wrapper" [style.background]="backgroundGradient()">
+  <div class="detalle-inner">
+    <div class="top-bar">
+      <a routerLink="/" class="btn-volver">← Volver a Explorar</a>
+    </div>
+
+    @if (cargando()) {
+      <p class="estado-centrado">Cargando atmósfera inmersiva...</p>
+    } @else if (errorMsg()) {
+      <div class="estado-centrado">
+        <p>{{ errorMsg() }}</p>
+      </div>
+    } @else if (moodboard(); as mb) {
+      <div class="detalle-grid">
+        <!-- Columna izquierda: póster/portada + paleta -->
+        <aside class="columna-visual">
+          <div class="obras-fila" [class.doble]="!!obraSecundaria()">
+            <button type="button" class="poster-box" (click)="abrirDetallesObraPrincipal()" title="Ver sinopsis y detalles">
+              <img [src]="mb.coverUrl" [alt]="mb.mediaTitle" />
+              <span class="tipo-pill">{{ mb.mediaType === 'libro' ? '📖 Libro' : '🎬 Película' }}</span>
+              <div class="poster-pie">
+                <strong>{{ mb.mediaTitle }}</strong>
+                @if (mb.mediaYear) { <span>{{ mb.mediaYear }}</span> }
+              </div>
+            </button>
+
+            @if (obraSecundaria(); as sec) {
+              <button type="button" class="poster-box" (click)="abrirDetallesObraSecundaria()" title="Ver sinopsis y detalles">
+                @if (sec.coverUrl) {
+                  <img [src]="sec.coverUrl" [alt]="sec.titulo" />
+                } @else {
+                  <div class="poster-placeholder">{{ sec.tipo === 'libro' ? '📖' : '🎬' }}</div>
+                }
+                <span class="tipo-pill">{{ sec.tipo === 'libro' ? '📖 Libro' : '🎬 Película' }}</span>
+                <div class="poster-pie">
+                  <strong>{{ sec.titulo }}</strong>
+                  @if (sec.anio) { <span>{{ sec.anio }}</span> }
+                </div>
+              </button>
+            }
+          </div>
+
+          <div class="paleta-card">
+            <div class="paleta-header">
+              <span>Paleta cromática</span>
+              @if (copiadoHex()) {
+                <small class="copiado-aviso">{{ copiadoHex() }}</small>
+              }
+            </div>
+            <div class="colores-lista">
+              @for (hex of paletteColors(); track $index) {
+                <button type="button" class="swatch-btn" (click)="copiarColor(hex)" [title]="'Copiar ' + hex">
+                  <span class="swatch-circle" [style.background-color]="hex"></span>
+                  <span class="swatch-hex">{{ hex }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </aside>
+
+        <!-- Columna derecha: info, tags, tarjeta de sinopsis debajo de tags y reproductor -->
+        <section class="columna-info">
+          <div class="cabecera-detalle">
+            <div>
+              <p class="subtitulo-obra">
+                {{ mb.mediaTitle }} @if (mb.mediaYear) { ({{ mb.mediaYear }}) }
+                @if (obraSecundaria(); as sec) { • {{ sec.titulo }} }
+                @if (mb.user?.username) { • por @{{ mb.user.username }} }
+              </p>
+              <h1>{{ mb.titulo }}</h1>
+            </div>
+
+            <button type="button" class="btn-guardar" [class.guardado]="guardado()" (click)="alternarGuardado()">
+              {{ guardado() ? '❤️ Guardado' : '🤍 Guardar' }}
+            </button>
+          </div>
+
+          @if (descripcionLimpia()) {
+            <blockquote class="cita-descripcion">"{{ descripcionLimpia() }}"</blockquote>
+          }
+
+          <div class="etiquetas-fila">
+            @for (tag of mb.tags; track tag.idTag) {
+              <span class="etiqueta-badge">#{{ tag.nombre }}</span>
+            }
+          </div>
+
+          <!-- Tarjeta de sinopsis / detalles debajo de los tags al hacer clic en peli o libro -->
+          @if (fichaActiva(); as ficha) {
+            <div class="tarjeta-sinopsis-obra">
+              <div class="sinopsis-cabecera">
+                <span>
+                  {{ ficha.tipo === 'libro' ? '📖 Libro' : '🎬 Película' }}
+                  @if (ficha.anio) { ({{ ficha.anio }}) }
+                  @if (ficha.meta) { • {{ ficha.meta }} }
+                </span>
+                <button type="button" class="btn-cerrar-ficha" (click)="cerrarFichaObra()">✕</button>
+              </div>
+              <h3>{{ ficha.titulo }}</h3>
+              @if (cargandoFicha()) {
+                <p class="sinopsis-cuerpo">Cargando sinopsis...</p>
+              } @else {
+                <p class="sinopsis-cuerpo">{{ ficha.sinopsis }}</p>
+              }
+            </div>
+          }
+
+          <div class="reproductor-card">
+            <div class="reproductor-top">
+              <span>Banda sonora ({{ (mb.tracks || []).length }} pistas • preview 30s)</span>
+              <small>Avance automático al terminar</small>
+            </div>
+
+            @if (activeTrack(); as pista) {
+              <div class="pista-activa">
+                <img [src]="pista.albumCover || mb.coverUrl" [alt]="pista.titulo" />
+                <div class="pista-textos">
+                  <strong>{{ pista.titulo }}</strong>
+                  <span>{{ pista.artista }}</span>
+                </div>
+                <div class="controles-audio">
+                  <button type="button" class="btn-control" (click)="anteriorPista()" title="Anterior">⏮</button>
+                  <button type="button" class="btn-play-principal" (click)="togglePlayPause()">
+                    {{ isPlaying() ? '⏸' : '▶' }}
+                  </button>
+                  <button type="button" class="btn-control" (click)="siguientePista()" title="Siguiente">⏭</button>
+                </div>
+              </div>
+
+              <div class="barra-tiempo">
+                <span>{{ currentTimeLabel() }}</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  [value]="progressPercent()"
+                  (input)="buscarEnBarra($event)"
+                />
+                <span>{{ durationLabel() }}</span>
+              </div>
+            }
+
+            <div class="playlist-lista">
+              @for (track of mb.tracks; track track.idTrack || $index; let i = $index) {
+                <button
+                  type="button"
+                  class="playlist-item"
+                  [class.activa]="currentTrackIndex() === i"
+                  (click)="cargarPista(i, true)">
+                  <span class="indice-pista">{{ i + 1 }}</span>
+                  <img [src]="track.albumCover" [alt]="track.titulo" />
+                  <div class="playlist-info">
+                    <strong>{{ track.titulo }}</strong>
+                    <span>{{ track.artista }}</span>
+                  </div>
+                  <span class="duracion-pista">0:30</span>
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+      </div>
+    }
+  </div>
+</div>

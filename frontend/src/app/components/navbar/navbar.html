@@ -1,14 +1,12 @@
 <header class="navbar-header">
   <nav class="navbar-container">
-    <!-- Logo -->
     <a routerLink="/" class="logo">
       <div class="logo-icon">SF</div>
       <span class="logo-text">SoundFrame</span>
     </a>
 
-    <!-- Botones principales -->
     <div class="nav-actions">
-      <button class="btn-sorprendeme" (click)="abrirRuleta()">
+      <button type="button" class="btn-sorprendeme" (click)="abrirModalSorprendeme()">
         <span>🎲</span>
         <span class="texto-oculto-movil">Sorpréndeme</span>
       </button>
@@ -24,3 +22,38 @@
     </div>
   </nav>
 </header>
+
+@if (mostrarModalSorprendeme()) {
+  <div class="modal-backdrop" (click)="cerrarModalSorprendeme()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button type="button" class="modal-close" (click)="cerrarModalSorprendeme()">✕</button>
+      <h2>¿Cómo te sientes hoy?</h2>
+      <p>Elige una atmósfera y te llevamos directo a un moodboard con su música lista.</p>
+
+      <div class="moods-grid">
+        @for (estado of estadosAnimo; track estado.nombre) {
+          <button
+            type="button"
+            class="mood-btn"
+            [disabled]="cargandoSorprendeme()"
+            (click)="elegirEstadoAnimo(estado.nombre)">
+            <span>{{ estado.emoji }}</span>
+            <span>{{ estado.nombre }}</span>
+          </button>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="mood-cualquiera-btn"
+        [disabled]="cargandoSorprendeme()"
+        (click)="elegirEstadoAnimo()">
+        ✨ Sorpréndeme con cualquier mood
+      </button>
+
+      @if (errorSorprendeme()) {
+        <p class="modal-error">{{ errorSorprendeme() }}</p>
+      }
+    </div>
+  </div>
+}
