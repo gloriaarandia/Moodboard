@@ -13,4 +13,8 @@ export class MoodboardService {
     const url = tag ? `${this.apiUrl}?tag=${encodeURIComponent(tag)}` : this.apiUrl;
     return this.http.get<any[]>(url);
   }
+
+  crearMoodboard(nuevoMoodboard: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, nuevoMoodboard);
+  }
 }

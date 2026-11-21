@@ -1,0 +1,261 @@
+<div class="crear-container">
+  <div class="barra-superior-crear">
+    <button type="button" class="btn-atras-borrador" (click)="irAtrasYGuardarBorrador()">
+      ← Ir atrás (guardar borrador)
+    </button>
+    <button type="button" class="btn-cancelar" (click)="cancelarCreacion()">
+      ✕ Cancelar
+    </button>
+  </div>
+
+  <header class="crear-header">
+    <h1>Crea un nuevo Moodboard</h1>
+    <p>Combina película y/o libro, su paleta cromática y hasta 5 canciones.</p>
+  </header>
+
+  @if (draftNotice()) {
+    <div class="aviso-borrador">
+      <span>📝 {{ draftNotice() }}</span>
+      <button type="button" (click)="descartarBorrador()">Descartar</button>
+    </div>
+  }
+
+  <div class="crear-grid">
+    <!-- PASO 1: PELÍCULA / LIBRO + COLORTHIEF -->
+    <section class="panel">
+      <div class="paso-titulo">
+        <span class="paso-num">1</span>
+        <h2>Obra principal y paleta</h2>
+      </div>
+
+      <div class="selector-tipo">
+        <button type="button" [class.activo]="mediaType() === 'pelicula'" (click)="setMediaType('pelicula')">
+          🎬 Película
+        </button>
+        <button type="button" [class.activo]="mediaType() === 'libro'" (click)="setMediaType('libro')">
+          📖 Libro
+        </button>
+      </div>
+
+      <div class="buscador-box">
+        <input
+          type="text"
+          [(ngModel)]="mediaQuery"
+          (input)="onMediaSearch()"
+          [placeholder]="mediaType() === 'pelicula' ? 'Busca una película principal...' : 'Busca un libro principal...'"
+          class="input-dark"
+        />
+
+        @if (mediaResults().length > 0) {
+          <div class="dropdown-resultados">
+            @for (item of mediaResults(); track item.externalId) {
+              <button type="button" class="resultado-item" (click)="selectMedia(item)">
+                <img [src]="item.coverUrl" [alt]="item.title" />
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  <span>{{ item.year || 'Año desconocido' }}</span>
+                </div>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      @if (selectedMedia(); as media) {
+        <div class="obra-seleccionada">
+          <div class="obra-info">
+            <div class="portada-wrapper">
+              <img
+                #coverImg
+                [src]="media.coverUrl + (media.coverUrl.includes('?') ? '&' : '?') + 'cors=1'"
+                crossorigin="anonymous"
+                (load)="extractColors(coverImg)"
+                [alt]="media.title"
+              />
+              <button
+                type="button"
+                class="btn-papelera-portada"
+                (click)="clearSelectedMedia()"
+                title="Quitar portada y elegir otra">
+                🗑
+              </button>
+            </div>
+            <div>
+              <span class="badge">{{ mediaType() === 'libro' ? '📖 Libro' : '🎬 Película' }}</span>
+              <h3>{{ media.title }}</h3>
+              <p>{{ media.year }}</p>
+            </div>
+          </div>
+
+          <div class="paleta-editor">
+            <label>Paleta de 5 colores (haz clic para editar):</label>
+            <div class="colores-fila">
+              @for (color of palette(); track $index) {
+                <div class="color-item">
+                  <input type="color" [value]="color" (change)="updateColor($index, $event)" />
+                  <span>{{ color }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- OBRA COMPLEMENTARIA OPCIONAL (PELÍCULA + LIBRO JUNTOS) -->
+        <div class="obra-complementaria">
+          <label class="label-secundaria">
+            + Añadir también {{ secondaryType() === 'libro' ? 'un libro' : 'una película' }} al moodboard (opcional)
+          </label>
+
+          @if (!selectedSecondaryMedia()) {
+            <div class="buscador-box">
+              <input
+                type="text"
+                [(ngModel)]="secondaryQuery"
+                (input)="onSecondaryMediaSearch()"
+                [placeholder]="secondaryType() === 'libro' ? 'Buscar libro complementario...' : 'Buscar película complementaria...'"
+                class="input-dark"
+              />
+
+              @if (secondaryResults().length > 0) {
+                <div class="dropdown-resultados">
+                  @for (sec of secondaryResults(); track sec.externalId) {
+                    <button type="button" class="resultado-item" (click)="selectSecondaryMedia(sec)">
+                      <img [src]="sec.coverUrl" [alt]="sec.title" />
+                      <div>
+                        <strong>{{ sec.title }}</strong>
+                        <span>{{ sec.year || 'Año desconocido' }}</span>
+                      </div>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="secundaria-card">
+              <img [src]="selectedSecondaryMedia().coverUrl" [alt]="selectedSecondaryMedia().title" />
+              <div class="secundaria-texto">
+                <span class="badge">{{ secondaryType() === 'libro' ? '📖 Libro' : '🎬 Película' }}</span>
+                <strong>{{ selectedSecondaryMedia().title }}</strong>
+                <small>{{ selectedSecondaryMedia().year || '' }}</small>
+              </div>
+              <button type="button" class="btn-remove" (click)="removeSecondaryMedia()" title="Quitar">🗑</button>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- PASOS 2 Y 3: DEEZER + DETALLES -->
+    <div class="columna-derecha">
+      <section class="panel">
+        <div class="paso-header-flex">
+          <div class="paso-titulo">
+            <span class="paso-num">2</span>
+            <h2>Banda Sonora</h2>
+          </div>
+          <span class="contador">{{ selectedTracks().length }} / 5 canciones</span>
+        </div>
+
+        <div class="buscador-box">
+          <input
+            type="text"
+            [(ngModel)]="deezerQuery"
+            (input)="onDeezerSearch()"
+            placeholder="Busca canciones o artistas en Deezer..."
+            class="input-dark"
+          />
+
+          @if (deezerResults().length > 0) {
+            <div class="dropdown-resultados">
+              @for (t of deezerResults(); track t.id) {
+                <div class="resultado-cancion">
+                  <div class="cancion-meta">
+                    <img [src]="t.album.cover_small" [alt]="t.title" />
+                    <div>
+                      <strong>{{ t.title }}</strong>
+                      <span>{{ t.artist.name }}</span>
+                    </div>
+                  </div>
+                  <div class="cancion-acciones">
+                    @if (t.preview) {
+                      <button type="button" class="btn-mini-play" (click)="togglePreview(t.preview)">
+                        {{ playingUrl() === t.preview ? '⏸' : '▶' }}
+                      </button>
+                    }
+                    <button type="button" class="btn-add" (click)="addTrack(t)">+ Añadir</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="lista-tracks">
+          @for (track of selectedTracks(); track track.deezerTrackId; let i = $index) {
+            <div class="track-item">
+              <div class="cancion-meta">
+                <span class="track-num">{{ i + 1 }}</span>
+                <img [src]="track.albumCover" [alt]="track.titulo" />
+                <div>
+                  <strong>{{ track.titulo }}</strong>
+                  <span>{{ track.artista }}</span>
+                </div>
+              </div>
+              <div class="cancion-acciones">
+                <button type="button" class="btn-mini-play" (click)="togglePreview(track.previewMp3Url)">
+                  {{ playingUrl() === track.previewMp3Url ? '⏸' : '▶' }}
+                </button>
+                <button type="button" class="btn-remove" (click)="removeTrack(i)">✕</button>
+              </div>
+            </div>
+          } @empty {
+            <p class="vacio-msg">Aún no has añadido canciones (máx. 5).</p>
+          }
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="paso-titulo">
+          <span class="paso-num">3</span>
+          <h2>Detalles y Etiquetas</h2>
+        </div>
+
+        <div class="campo">
+          <label>Título del Moodboard *</label>
+          <input type="text" [(ngModel)]="titulo" placeholder="Ej. Lluvia de neón en 2049..." class="input-dark" />
+        </div>
+
+        <div class="campo">
+          <label>Breve descripción</label>
+          <textarea [(ngModel)]="descripcion" rows="2" placeholder="Describe la atmósfera..." class="input-dark"></textarea>
+        </div>
+
+        <div class="campo">
+          <div class="paso-header-flex">
+            <label>Etiquetas de ánimo *</label>
+            <span class="contador">{{ selectedTagIds().length }} / 3</span>
+          </div>
+          <div class="tags-grid">
+            @for (tag of availableTags; track tag.idTag) {
+              <button
+                type="button"
+                class="tag-chip"
+                [class.seleccionado]="selectedTagIds().includes(tag.idTag)"
+                (click)="toggleTag(tag.idTag)">
+                {{ tag.nombre }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (errorMessage()) {
+          <p class="error-box">{{ errorMessage() }}</p>
+        }
+
+        <button type="button" class="btn-publicar" [disabled]="publicando()" (click)="publicar()">
+          {{ publicando() ? 'Publicando...' : '✨ Publicar Moodboard' }}
+        </button>
+      </section>
+    </div>
+  </div>
+</div>
