@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class MoodboardService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/moodboards';
+  private apiUrl = 'https://moodboard-pupu.onrender.com/api/moodboards';
 
   getMoodboards(tag?: string): Observable<any[]> {
     const url = tag ? `${this.apiUrl}?tag=${encodeURIComponent(tag)}` : this.apiUrl;
