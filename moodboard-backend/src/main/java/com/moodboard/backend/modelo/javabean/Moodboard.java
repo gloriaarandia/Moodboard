@@ -31,7 +31,7 @@ public class Moodboard {
 	private User user;
 	@Column(name = "titulo", nullable = false)
 	private String titulo;
-	@Column(name = "descripcion", nullable = false)
+	@Column(name = "descripcion") // o nullable = true
 	private String descripcion;
 	@Column(name = "media_type", nullable = false)
 	private String mediaType;
@@ -43,7 +43,7 @@ public class Moodboard {
 	private short mediaYear;
 	@Column(name = "media_title", nullable = false)
 	private String mediaTitle;
-	@Column(name = "backdrop_url", nullable = false)
+	@Column(name = "backdrop_url", length = 500)
 	private String backdropUrl;
 	@Column(name = "paleta", nullable = false)
 	private String paleta;

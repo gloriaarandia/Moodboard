@@ -49,6 +49,7 @@ export class Detalle implements OnInit, OnDestroy {
   progressPercent = signal<number>(0);
   currentTimeLabel = signal<string>('0:00');
   durationLabel = signal<string>('0:30');
+  audioErrorMsg = signal<string>('');
 
   paletteColors = computed(() => {
     const mb = this.moodboard();
@@ -117,7 +118,7 @@ export class Detalle implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.audio.pause();
-    this.audio.src = '';
+    this.audio.removeAttribute('src');
   }
 
   abrirDetallesObraPrincipal(): void {
@@ -362,22 +363,42 @@ export class Detalle implements OnInit, OnDestroy {
         this.cargarPista(0, false);
       }
     });
+
+    this.audio.addEventListener('error', () => {
+      this.isPlaying.set(false);
+      this.audioErrorMsg.set('La vista previa de esta canción no está disponible o ha caducado.');
+    });
   }
 
   cargarPista(index: number, reproducir: boolean): void {
     const tracks = this.moodboard()?.tracks || [];
-    if (!tracks[index]) return;
+    const track = tracks[index];
+    if (!track) return;
 
     this.currentTrackIndex.set(index);
     this.progressPercent.set(0);
     this.currentTimeLabel.set('0:00');
-    this.audio.src = tracks[index].previewMp3Url;
+    this.audioErrorMsg.set('');
+
+    const url = (track.previewMp3Url || '').trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      this.audio.pause();
+      this.audio.removeAttribute('src');
+      this.isPlaying.set(false);
+      this.audioErrorMsg.set('Esta canción no dispone de fragmento de audio en Deezer.');
+      return;
+    }
+
+    this.audio.pause();
+    this.audio.src = url;
+    this.audio.load();
 
     if (reproducir) {
       this.audio.play().then(() => {
         this.isPlaying.set(true);
       }).catch(() => {
         this.isPlaying.set(false);
+        this.audioErrorMsg.set('No se pudo reproducir la vista previa de esta pista.');
       });
     } else {
       this.isPlaying.set(false);
@@ -385,10 +406,20 @@ export class Detalle implements OnInit, OnDestroy {
   }
 
   togglePlayPause(): void {
-    if (!this.audio.src) return;
+    const url = (this.activeTrack()?.previewMp3Url || '').trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      this.audioErrorMsg.set('Esta canción no dispone de fragmento de audio en Deezer.');
+      return;
+    }
+
     if (this.audio.paused) {
-      this.audio.play();
-      this.isPlaying.set(true);
+      this.audio.play().then(() => {
+        this.isPlaying.set(true);
+        this.audioErrorMsg.set('');
+      }).catch(() => {
+        this.isPlaying.set(false);
+        this.audioErrorMsg.set('No se pudo reproducir la vista previa de esta pista.');
+      });
     } else {
       this.audio.pause();
       this.isPlaying.set(false);

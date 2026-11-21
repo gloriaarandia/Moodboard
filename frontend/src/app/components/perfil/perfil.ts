@@ -143,14 +143,21 @@ export class Perfil implements OnInit {
     event.stopPropagation();
 
     this.mensajeFeedback.set('');
-    this.editandoMoodboard.set(mb);
+    this.editandoMoodboard.set({ ...mb });
     this.editTitulo = mb.titulo || '';
     this.editDescripcion = mb.descripcion || '';
     this.editPaleta.set([...this.obtenerColores(mb.paleta)]);
-    this.editTagIds.set((mb.tags || []).map((t: any) => t.idTag));
+
+    const idsTags = (mb.tags || [])
+      .map((t: any) => Number(t.idTag))
+      .filter((id: number) => !Number.isNaN(id));
+    this.editTagIds.set(idsTags);
+
     this.editTracks.set((mb.tracks || []).map((tr: any) => ({ ...tr })));
     this.deezerQuery = '';
     this.deezerResults.set([]);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cerrarEdicion(): void {
@@ -198,7 +205,7 @@ export class Perfil implements OnInit {
 
   addTrackEdicion(dzTrack: any): void {
     if (this.editTracks().length >= 5) return;
-    if (this.editTracks().some((t) => t.deezerTrackId === String(dzTrack.id))) return;
+    if (this.editTracks().some((t) => String(t.deezerTrackId) === String(dzTrack.id))) return;
 
     const nueva = {
       deezerTrackId: String(dzTrack.id),
@@ -262,7 +269,10 @@ export class Perfil implements OnInit {
       error: (err) => {
         console.error('Error al actualizar moodboard:', err);
         this.guardandoEdicion.set(false);
-        const detalle = typeof err?.error === 'string' && err.error ? ` (${err.error})` : ` (HTTP ${err?.status || 'sin conexión'})`;
+        const detalle =
+          typeof err?.error === 'string' && err.error
+            ? ` (${err.error})`
+            : ` (HTTP ${err?.status || 'sin conexión'})`;
         this.mensajeFeedback.set('No se pudieron guardar los cambios en el servidor' + detalle);
       }
     });
@@ -272,7 +282,9 @@ export class Perfil implements OnInit {
     event.preventDefault();
     event.stopPropagation();
 
-    const confirmar = confirm(`¿Seguro que quieres eliminar el moodboard "${mb.titulo}"? Esta acción no se puede deshacer.`);
+    const confirmar = confirm(
+      `¿Seguro que quieres eliminar el moodboard "${mb.titulo}"? Esta acción no se puede deshacer.`
+    );
     if (!confirmar) return;
 
     this.eliminandoId.set(mb.idMoodboard);

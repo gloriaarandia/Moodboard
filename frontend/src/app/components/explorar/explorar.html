@@ -3,10 +3,27 @@
     <h1>Explora por atmósfera</h1>
     <p>Descubre películas y libros a través de su paleta de colores y su banda sonora.</p>
 
+    <div class="buscador-moods">
+      <span class="icono-lupa">🔍</span>
+      <input
+        type="text"
+        placeholder="Buscar por mood, película, libro o palabra..."
+        [value]="busqueda()"
+        (input)="busqueda.set($any($event.target).value)"
+        class="input-buscador"
+      />
+      @if (busqueda()) {
+        <button type="button" class="btn-limpiar" (click)="busqueda.set('')" title="Limpiar búsqueda">
+          ✕
+        </button>
+      }
+    </div>
+
     <div class="filtros-bar">
       @for (tag of tagsFiltro; track tag) {
-        <button 
-          class="btn-tag" 
+        <button
+          type="button"
+          class="btn-tag"
           [class.activo]="tagSeleccionado() === tag"
           (click)="filtrarPorTag(tag)">
           {{ tag }}
@@ -17,19 +34,18 @@
 
   @if (cargando()) {
     <p class="mensaje-estado">Cargando atmósferas...</p>
-  } @else if (moodboards().length === 0) {
-    <p class="mensaje-estado">No hay moodboards con esta atmósfera todavía.</p>
+  } @else if (moodboardsFiltrados().length === 0) {
+    <p class="mensaje-estado">No se encontraron moodboards con esa búsqueda o atmósfera.</p>
   } @else {
     <section class="grid-moodboards">
-      @for (mb of moodboards(); track mb.idMoodboard) {
-        <article class="card">
-          
-          <a [routerLink]="['/moodboard', mb.idMoodboard]" class="card-media">
+      @for (mb of moodboardsFiltrados(); track mb.idMoodboard) {
+        <article class="card" [routerLink]="['/moodboard', mb.idMoodboard]">
+          <div class="card-media">
             <img [src]="mb.coverUrl" [alt]="mb.mediaTitle" class="portada" />
             <div class="degradado"></div>
 
             <span class="badge-tipo">
-              {{ mb.mediaType === 'libro' ? '📖 Libro' : '🎬 Película' }}
+              {{ mb.mediaType === 'libro' ? '📖 Libro' : mb.mediaType === 'ambos' ? '🎬 + 📖' : '🎬 Película' }}
             </span>
 
             <div class="controles-inferiores">
@@ -39,19 +55,19 @@
                 }
               </div>
 
-              @if (mb.tracks && mb.tracks.length > 0) {
-                <button 
+              @if (tieneAudioValido(mb)) {
+                <button
                   type="button"
-                  class="btn-play" 
-                  (click)="$event.preventDefault(); $event.stopPropagation(); togglePlay(mb.tracks[0].previewMp3Url)"
+                  class="btn-play"
+                  (click)="$event.stopPropagation(); togglePlay(mb.tracks[0].previewMp3Url)"
                   [title]="'Escuchar: ' + mb.tracks[0].titulo">
                   {{ urlSonando() === mb.tracks[0].previewMp3Url ? '⏸' : '▶' }}
                 </button>
               }
             </div>
-          </a>
+          </div>
 
-          <a [routerLink]="['/moodboard', mb.idMoodboard]" class="card-body">
+          <div class="card-body">
             <div>
               <h2 class="card-titulo">{{ mb.titulo }}</h2>
               <p class="card-obra">
@@ -64,8 +80,7 @@
                 <span class="tag-chip">#{{ tag.nombre }}</span>
               }
             </div>
-          </a>
-
+          </div>
         </article>
       }
     </section>

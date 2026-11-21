@@ -127,6 +127,10 @@
                 </div>
               </div>
 
+              @if (audioErrorMsg()) {
+                <p class="audio-aviso">{{ audioErrorMsg() }}</p>
+              }
+
               <div class="barra-tiempo">
                 <span>{{ currentTimeLabel() }}</span>
                 <input

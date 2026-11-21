@@ -101,7 +101,7 @@
         </div>
 
         <div class="lista-tracks-edit">
-          @for (track of editTracks(); track track.deezerTrackId || $index; let i = $index) {
+          @for (track of editTracks(); track $index; let i = $index) {
             <div class="track-edit-row">
               <span>{{ i + 1 }}. <strong>{{ track.titulo }}</strong> — {{ track.artista }}</span>
               <button type="button" class="btn-quitar" (click)="removeTrackEdicion(i)">✕</button>
@@ -116,7 +116,11 @@
 
       <div class="acciones-editor">
         <button type="button" class="btn-secundario" (click)="cerrarEdicion()">Cancelar</button>
-        <button type="button" class="btn-guardar-cambios" [disabled]="guardandoEdicion()" (click)="guardarCambios()">
+        <button
+          type="button"
+          class="btn-guardar-cambios"
+          [disabled]="guardandoEdicion()"
+          (click)="guardarCambios()">
           {{ guardandoEdicion() ? 'Guardando...' : '💾 Guardar cambios' }}
         </button>
       </div>
