@@ -1,5 +1,3 @@
-# Moodboard
-
 # SoundFrame — Moodboards Sonoros
 
 Plataforma de descubrimiento cultural basada en atmósferas. En lugar de buscar películas o libros únicamente por géneros tradicionales, permite crear y explorar fichas sensoriales que combinan obras audiovisuales o literarias, paletas de colores extraídas dinámicamente y bandas sonoras con pre-escucha.
